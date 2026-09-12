@@ -3,7 +3,7 @@
 Public, non-proprietary execution wrapper for Project 9.
 
 ## GitHub secret required
-`PROJECT9_CORE_READ_TOKEN` must be a least-privilege token that can read only the private `business4k/project-9-core` repository.
+`PROJECT9_CORE_READ_TOKEN` must be a least-privilege token that can read only the private `ahmed4kk/project-9-core` repository.
 
 Other runtime secrets belong in GitHub Actions Secrets, never in source.
 
