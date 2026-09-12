@@ -28,7 +28,7 @@ jobs:
       - name: Checkout private Project 9 Core
         uses: actions/checkout@v6
         with:
-          repository: business4k/project-9-core
+          repository: ahmed4kk/project-9-core
           ref: ${{ inputs.core_ref }}
           token: ${{ secrets.PROJECT9_CORE_READ_TOKEN }}
           path: project9-core
