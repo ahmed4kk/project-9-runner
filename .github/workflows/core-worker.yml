@@ -59,4 +59,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.BUSINESS4K_PUBLISH_TOKEN }}
         run: |
           cd project9-core
-          python -m lotus.runtime.runner --task-id "$TASK_ID"
+          python -c "from lotus.runtime.execution import execute_task; print(execute_task('$TASK_ID'))"
