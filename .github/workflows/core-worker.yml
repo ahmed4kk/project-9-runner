@@ -185,12 +185,28 @@ jobs:
 
           api_key = os.environ["CEREBRAS_API_KEY"].strip()
 
-          print("===== CEREBRAS MODELS =====")
+          print("===== CEREBRAS =====")
+          print("Secret present:", bool(api_key))
+          print("Secret length:", len(api_key))
 
-          response = requests.get(
-              "https://api.cerebras.ai/v1/models",
+          if not api_key:
+              raise RuntimeError("CEREBRAS_API_KEY is empty")
+
+          response = requests.post(
+              "https://api.cerebras.ai/v1/chat/completions",
               headers={
-                  "Authorization": "Bearer " + api_key
+                  "Authorization": "Bearer " + api_key,
+                  "Content-Type": "application/json"
+              },
+              json={
+                  "model": "qwen-3.8-27b",
+                  "messages": [
+                      {
+                          "role": "user",
+                          "content": "Reply with exactly: Project 9 Cerebras test OK"
+                      }
+                  ],
+                  "max_tokens": 50
               },
               timeout=60
           )
