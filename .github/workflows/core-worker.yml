@@ -59,29 +59,21 @@ jobs:
           import os
           import requests
 
-          api_key = os.environ["GOOGLE_API_KEY"]
+          api_key = os.environ["GOOGLE_API_KEY"].strip()
 
-          url = (
-              "https://generativelanguage.googleapis.com/v1beta/"
-              "models/gemini-2.5-flash:generateContent"
-          )
+          url = "https://generativelanguage.googleapis.com/v1beta/interactions"
 
           response = requests.post(
               url,
-              params={"key": api_key},
-              headers={"Content-Type": "application/json"},
-              json={
-                  "contents": [
-                      {
-                          "parts": [
-                              {
-                                  "text": "Reply with exactly: Project 9 Gemini test OK"
-                              }
-                          ]
-                      }
-                  ]
+              headers={
+                  "x-goog-api-key": api_key,
+                  "Content-Type": "application/json"
               },
-              timeout=60,
+              json={
+                  "model": "gemini-3.6-flash",
+                  "input": "Reply with exactly: Project 9 Gemini test OK"
+              },
+              timeout=60
           )
 
           print("===== GEMINI =====")
