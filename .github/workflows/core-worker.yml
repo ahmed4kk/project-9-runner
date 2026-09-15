@@ -95,30 +95,34 @@ jobs:
           import os
           import requests
 
-          api_key = os.environ["GROQ_API_KEY"]
+          api_key = os.environ["GROQ_API_KEY"].strip()
 
-          url = "https://api.groq.com/openai/v1/chat/completions"
+          print("===== GROQ =====")
+          print("Secret present:", bool(api_key))
+          print("Secret length:", len(api_key))
+
+          if not api_key:
+              raise RuntimeError("GROQ_API_KEY is empty")
 
           response = requests.post(
-              url,
+              "https://api.groq.com/openai/v1/chat/completions",
               headers={
-                  "Authorization": f"Bearer {api_key}",
-                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + api_key,
+                  "Content-Type": "application/json"
               },
               json={
-                  "model": "llama-3.3-70b-versatile",
+                  "model": "openai/gpt-oss-120b",
                   "messages": [
                       {
                           "role": "user",
                           "content": "Reply with exactly: Project 9 Groq test OK"
                       }
                   ],
-                  "max_tokens": 20,
+                  "max_tokens": 20
               },
-              timeout=60,
+              timeout=60
           )
 
-          print("===== GROQ =====")
           print("HTTP STATUS:", response.status_code)
           print(response.text)
 
