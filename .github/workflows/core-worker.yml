@@ -220,7 +220,7 @@ jobs:
       # ============================================================
       # NVIDIA
       # ============================================================
-      - name: Test NVIDIA API
+      - name: Test NVIDIA GPT-OSS
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         continue-on-error: true
@@ -231,7 +231,7 @@ jobs:
 
           key = os.environ.get("NVIDIA_API_KEY", "").strip()
 
-          print("===== NVIDIA =====")
+          print("===== NVIDIA GPT-OSS =====")
           print("Secret present:", bool(key))
           print("Secret length:", len(key))
 
@@ -245,11 +245,11 @@ jobs:
                   "Content-Type": "application/json"
               },
               json={
-                  "model": "meta/llama-3.3-70b-instruct",
+                  "model": "openai/gpt-oss-120b",
                   "messages": [
                       {
                           "role": "user",
-                          "content": "Reply with exactly: Project 9 NVIDIA test OK"
+                          "content": "Reply with exactly: Project 9 NVIDIA GPT OSS test OK"
                       }
                   ],
                   "max_tokens": 50
