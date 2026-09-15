@@ -62,6 +62,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Compile check Project 9 model system
+        working-directory: project9-core
+        run: |
+          python -m py_compile lotus/models/quota_manager.py
+          python -m py_compile lotus/models/quota_store.py
+          python -m py_compile lotus/models/registry.py
+          python -m py_compile lotus/models/router.py
+
+          echo "Project 9 model system compile check OK"
       # ============================================================
       # PYTHON COMPILE CHECK
       # ============================================================
