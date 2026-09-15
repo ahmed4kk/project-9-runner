@@ -174,7 +174,7 @@ jobs:
       # ============================================================
       # CEREBRAS
       # ============================================================
-      - name: Test Cerebras Gemma
+      - name: Test Cerebras GPT-OSS
         env:
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
         continue-on-error: true
@@ -185,7 +185,7 @@ jobs:
 
           api_key = os.environ["CEREBRAS_API_KEY"].strip()
 
-          print("===== CEREBRAS GEMMA =====")
+          print("===== CEREBRAS GPT-OSS =====")
           print("Secret present:", bool(api_key))
           print("Secret length:", len(api_key))
 
@@ -199,11 +199,11 @@ jobs:
                   "Content-Type": "application/json"
               },
               json={
-                  "model": "gemma-4-31b",
+                  "model": "gpt-oss-120b",
                   "messages": [
                       {
                           "role": "user",
-                          "content": "Reply with exactly: Project 9 Cerebras Gemma test OK"
+                          "content": "Reply with exactly: Project 9 Cerebras GPT OSS test OK"
                       }
                   ],
                   "max_tokens": 50
