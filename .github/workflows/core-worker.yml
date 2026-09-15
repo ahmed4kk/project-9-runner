@@ -8,13 +8,15 @@ on:
         required: false
         default: ""
         type: string
+
       core_ref:
         description: "Private Core git ref (commit/tag/branch)"
         required: false
         default: "main"
         type: string
 
-# Critical security rule: no push/pull_request triggers.
+# Critical security rule:
+# No push/pull_request triggers.
 permissions:
   contents: read
 
@@ -24,6 +26,11 @@ jobs:
     timeout-minutes: 30
 
     steps:
+
+      # ============================================================
+      # CHECKOUT
+      # ============================================================
+
       - name: Checkout public runner
         uses: actions/checkout@v6
 
@@ -36,10 +43,18 @@ jobs:
           path: project9-core
           persist-credentials: false
 
+      # ============================================================
+      # PYTHON
+      # ============================================================
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.13"
+
+      # ============================================================
+      # DEPENDENCIES
+      # ============================================================
 
       - name: Install Core dependencies
         working-directory: project9-core
@@ -48,8 +63,25 @@ jobs:
           pip install -r requirements.txt
 
       # ============================================================
+      # PYTHON COMPILE CHECK
+      # ============================================================
+
+      - name: Compile check Project 9 model system
+        working-directory: project9-core
+        run: |
+          python -m py_compile lotus/models/quota_manager.py
+          python -m py_compile lotus/models/quota_store.py
+          python -m py_compile lotus/models/registry.py
+          python -m py_compile lotus/models/router.py
+
+          echo "======================================"
+          echo "Project 9 model system compile check OK"
+          echo "======================================"
+
+      # ============================================================
       # GEMINI
       # ============================================================
+
       - name: Test Gemini API
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
@@ -59,24 +91,27 @@ jobs:
           import os
           import requests
 
-          api_key = os.environ["GOOGLE_API_KEY"].strip()
+          api_key = os.environ.get("GOOGLE_API_KEY", "").strip()
 
-          url = "https://generativelanguage.googleapis.com/v1beta/interactions"
+          print("===== GEMINI 3.6 FLASH =====")
+          print("Secret present:", bool(api_key))
+
+          if not api_key:
+              raise RuntimeError("GOOGLE_API_KEY is empty")
 
           response = requests.post(
-              url,
+              "https://generativelanguage.googleapis.com/v1beta/interactions",
               headers={
                   "x-goog-api-key": api_key,
-                  "Content-Type": "application/json"
+                  "Content-Type": "application/json",
               },
               json={
                   "model": "gemini-3.6-flash",
-                  "input": "Reply with exactly: Project 9 Gemini test OK"
+                  "input": "Reply with exactly: Project 9 Gemini test OK",
               },
-              timeout=60
+              timeout=60,
           )
 
-          print("===== GEMINI =====")
           print("HTTP STATUS:", response.status_code)
           print(response.text)
 
@@ -86,6 +121,7 @@ jobs:
       # ============================================================
       # GROQ
       # ============================================================
+
       - name: Test Groq API
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
@@ -95,11 +131,10 @@ jobs:
           import os
           import requests
 
-          api_key = os.environ["GROQ_API_KEY"].strip()
+          api_key = os.environ.get("GROQ_API_KEY", "").strip()
 
-          print("===== GROQ =====")
+          print("===== GROQ GPT-OSS 120B =====")
           print("Secret present:", bool(api_key))
-          print("Secret length:", len(api_key))
 
           if not api_key:
               raise RuntimeError("GROQ_API_KEY is empty")
@@ -108,19 +143,19 @@ jobs:
               "https://api.groq.com/openai/v1/chat/completions",
               headers={
                   "Authorization": "Bearer " + api_key,
-                  "Content-Type": "application/json"
+                  "Content-Type": "application/json",
               },
               json={
                   "model": "openai/gpt-oss-120b",
                   "messages": [
                       {
                           "role": "user",
-                          "content": "Reply with exactly: Project 9 Groq test OK"
+                          "content": "Reply with exactly: Project 9 Groq test OK",
                       }
                   ],
-                  "max_tokens": 20
+                  "max_tokens": 30,
               },
-              timeout=60
+              timeout=60,
           )
 
           print("HTTP STATUS:", response.status_code)
@@ -132,7 +167,8 @@ jobs:
       # ============================================================
       # OPENROUTER
       # ============================================================
-      - name: Test OpenRouter API
+
+      - name: Test OpenRouter Free API
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         continue-on-error: true
@@ -141,12 +177,16 @@ jobs:
           import os
           import requests
 
-          api_key = os.environ["OPENROUTER_API_KEY"]
+          api_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
 
-          url = "https://openrouter.ai/api/v1/chat/completions"
+          print("===== OPENROUTER FREE =====")
+          print("Secret present:", bool(api_key))
+
+          if not api_key:
+              raise RuntimeError("OPENROUTER_API_KEY is empty")
 
           response = requests.post(
-              url,
+              "https://openrouter.ai/api/v1/chat/completions",
               headers={
                   "Authorization": f"Bearer {api_key}",
                   "Content-Type": "application/json",
@@ -156,7 +196,7 @@ jobs:
                   "messages": [
                       {
                           "role": "user",
-                          "content": "Reply with exactly: Project 9 OpenRouter test OK"
+                          "content": "Reply with exactly: Project 9 OpenRouter test OK",
                       }
                   ],
                   "max_tokens": 30,
@@ -164,7 +204,6 @@ jobs:
               timeout=60,
           )
 
-          print("===== OPENROUTER =====")
           print("HTTP STATUS:", response.status_code)
           print(response.text)
 
@@ -172,54 +211,9 @@ jobs:
           PY
 
       # ============================================================
-      # CEREBRAS
+      # NVIDIA / DEEPSEEK
       # ============================================================
-      - name: Test Cerebras GPT-OSS
-        env:
-          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
-        continue-on-error: true
-        run: |
-          python - <<'PY'
-          import os
-          import requests
 
-          api_key = os.environ["CEREBRAS_API_KEY"].strip()
-
-          print("===== CEREBRAS GPT-OSS =====")
-          print("Secret present:", bool(api_key))
-          print("Secret length:", len(api_key))
-
-          if not api_key:
-              raise RuntimeError("CEREBRAS_API_KEY is empty")
-
-          response = requests.post(
-              "https://api.cerebras.ai/v1/chat/completions",
-              headers={
-                  "Authorization": "Bearer " + api_key,
-                  "Content-Type": "application/json"
-              },
-              json={
-                  "model": "gpt-oss-120b",
-                  "messages": [
-                      {
-                          "role": "user",
-                          "content": "Reply with exactly: Project 9 Cerebras GPT OSS test OK"
-                      }
-                  ],
-                  "max_tokens": 50
-              },
-              timeout=60
-          )
-
-          print("HTTP STATUS:", response.status_code)
-          print(response.text)
-
-          response.raise_for_status()
-          PY
-
-      # ============================================================
-      # NVIDIA
-      # ============================================================
       - name: Test NVIDIA DeepSeek V4 Flash
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
@@ -229,32 +223,31 @@ jobs:
           import os
           import requests
 
-          key = os.environ.get("NVIDIA_API_KEY", "").strip()
+          api_key = os.environ.get("NVIDIA_API_KEY", "").strip()
 
           print("===== NVIDIA DEEPSEEK V4 FLASH =====")
-          print("Secret present:", bool(key))
-          print("Secret length:", len(key))
+          print("Secret present:", bool(api_key))
 
-          if not key:
+          if not api_key:
               raise RuntimeError("NVIDIA_API_KEY is empty")
 
           response = requests.post(
               "https://integrate.api.nvidia.com/v1/chat/completions",
               headers={
-                  "Authorization": "Bearer " + key,
-                  "Content-Type": "application/json"
+                  "Authorization": "Bearer " + api_key,
+                  "Content-Type": "application/json",
               },
               json={
                   "model": "deepseek-ai/deepseek-v4-flash-0731",
                   "messages": [
                       {
                           "role": "user",
-                          "content": "Reply with exactly: Project 9 NVIDIA DeepSeek test OK"
+                          "content": "Reply with exactly: Project 9 NVIDIA DeepSeek test OK",
                       }
                   ],
-                  "max_tokens": 30
+                  "max_tokens": 30,
               },
-              timeout=60
+              timeout=60,
           )
 
           print("HTTP STATUS:", response.status_code)
@@ -264,41 +257,56 @@ jobs:
           PY
 
       # ============================================================
-      # MISTRAL
+      # CLOUDFLARE WORKERS AI
       # ============================================================
-      - name: Test Mistral API
+
+      - name: Test Cloudflare Workers AI
         env:
-          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         continue-on-error: true
         run: |
           python - <<'PY'
           import os
           import requests
 
-          api_key = os.environ["MISTRAL_API_KEY"]
+          token = os.environ.get("CLOUDFLARE_API_TOKEN", "").strip()
+          account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
 
-          url = "https://api.mistral.ai/v1/chat/completions"
+          print("===== CLOUDFLARE WORKERS AI =====")
+          print("Token present:", bool(token))
+          print("Account ID present:", bool(account_id))
+
+          if not token:
+              raise RuntimeError("CLOUDFLARE_API_TOKEN is empty")
+
+          if not account_id:
+              raise RuntimeError("CLOUDFLARE_ACCOUNT_ID is empty")
+
+          model = "@cf/zai-org/glm-4.7-flash"
+
+          url = (
+              f"https://api.cloudflare.com/client/v4/accounts/"
+              f"{account_id}/ai/run/{model}"
+          )
 
           response = requests.post(
               url,
               headers={
-                  "Authorization": f"Bearer {api_key}",
+                  "Authorization": "Bearer " + token,
                   "Content-Type": "application/json",
               },
               json={
-                  "model": "mistral-small-latest",
                   "messages": [
                       {
                           "role": "user",
-                          "content": "Reply with exactly: Project 9 Mistral test OK"
+                          "content": "Reply with exactly: Project 9 Cloudflare test OK",
                       }
-                  ],
-                  "max_tokens": 20,
+                  ]
               },
               timeout=60,
           )
 
-          print("===== MISTRAL =====")
           print("HTTP STATUS:", response.status_code)
           print(response.text)
 
@@ -306,13 +314,27 @@ jobs:
           PY
 
       # ============================================================
-      # FINAL NOTE
+      # FINAL SUMMARY
       # ============================================================
+
       - name: API test summary
         run: |
           echo "======================================"
           echo "Project 9 API test suite completed."
-          echo "Check each previous step for its HTTP status."
+          echo ""
+          echo "Active providers tested:"
+          echo "- Google / Gemini 3.6 Flash"
+          echo "- Groq / GPT-OSS 120B"
+          echo "- OpenRouter / Free"
+          echo "- NVIDIA / DeepSeek V4 Flash"
+          echo "- Cloudflare Workers AI"
+          echo ""
+          echo "Excluded from active pool:"
+          echo "- Mistral"
+          echo "- Cerebras"
+          echo ""
           echo "No Project 9 Core task was executed."
+          echo "No Research workflow was executed."
+          echo "No legacy AI worker was executed."
           echo "No models.yaml changes were made."
           echo "======================================"
