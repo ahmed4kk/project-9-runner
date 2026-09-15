@@ -225,7 +225,7 @@ jobs:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         continue-on-error: true
         run: |
-          python -c '
+          python - <<'PY'
           import os
           import requests
 
@@ -238,10 +238,8 @@ jobs:
           if not key:
               raise RuntimeError("NVIDIA_API_KEY is empty")
 
-          url = "https://integrate.api.nvidia.com/v1/chat/completions"
-
-          r = requests.post(
-              url,
+          response = requests.post(
+              "https://integrate.api.nvidia.com/v1/chat/completions",
               headers={
                   "Authorization": "Bearer " + key,
                   "Content-Type": "application/json"
@@ -254,17 +252,16 @@ jobs:
                           "content": "Reply with exactly: Project 9 NVIDIA test OK"
                       }
                   ],
-                  "max_tokens": 20
+                  "max_tokens": 50
               },
               timeout=60
           )
 
-          print("HTTP STATUS:", r.status_code)
-          print(r.text)
+          print("HTTP STATUS:", response.status_code)
+          print(response.text)
 
-          r.raise_for_status()
-          '
-      
+          response.raise_for_status()
+          PY
 
       # ============================================================
       # MISTRAL
