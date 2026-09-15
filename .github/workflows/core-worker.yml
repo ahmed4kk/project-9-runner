@@ -220,7 +220,7 @@ jobs:
       # ============================================================
       # NVIDIA
       # ============================================================
-      - name: Test NVIDIA GPT-OSS
+      - name: List NVIDIA Models
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         continue-on-error: true
@@ -231,28 +231,17 @@ jobs:
 
           key = os.environ.get("NVIDIA_API_KEY", "").strip()
 
-          print("===== NVIDIA GPT-OSS =====")
+          print("===== NVIDIA MODELS =====")
           print("Secret present:", bool(key))
           print("Secret length:", len(key))
 
           if not key:
               raise RuntimeError("NVIDIA_API_KEY is empty")
 
-          response = requests.post(
-              "https://integrate.api.nvidia.com/v1/chat/completions",
+          response = requests.get(
+              "https://integrate.api.nvidia.com/v1/models",
               headers={
-                  "Authorization": "Bearer " + key,
-                  "Content-Type": "application/json"
-              },
-              json={
-                  "model": "openai/gpt-oss-120b",
-                  "messages": [
-                      {
-                          "role": "user",
-                          "content": "Reply with exactly: Project 9 NVIDIA GPT OSS test OK"
-                      }
-                  ],
-                  "max_tokens": 50
+                  "Authorization": "Bearer " + key
               },
               timeout=60
           )
@@ -262,6 +251,7 @@ jobs:
 
           response.raise_for_status()
           PY
+      
 
       # ============================================================
       # MISTRAL
