@@ -183,30 +183,18 @@ jobs:
           import os
           import requests
 
-          api_key = os.environ["CEREBRAS_API_KEY"]
+          api_key = os.environ["CEREBRAS_API_KEY"].strip()
 
-          url = "https://api.cerebras.ai/v1/chat/completions"
+          print("===== CEREBRAS MODELS =====")
 
-          response = requests.post(
-              url,
+          response = requests.get(
+              "https://api.cerebras.ai/v1/models",
               headers={
-                  "Authorization": f"Bearer {api_key}",
-                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + api_key
               },
-              json={
-                  "model": "llama-3.3-70b",
-                  "messages": [
-                      {
-                          "role": "user",
-                          "content": "Reply with exactly: Project 9 Cerebras test OK"
-                      }
-                  ],
-                  "max_tokens": 20,
-              },
-              timeout=60,
+              timeout=60
           )
 
-          print("===== CEREBRAS =====")
           print("HTTP STATUS:", response.status_code)
           print(response.text)
 
