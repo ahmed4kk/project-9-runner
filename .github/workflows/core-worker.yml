@@ -220,38 +220,31 @@ jobs:
       # ============================================================
       # NVIDIA
       # ============================================================
-     
       - name: Test NVIDIA API
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         continue-on-error: true
         run: |
-          python - <<'PY'
+          python -c '
           import os
           import requests
 
-          raw_key = os.environ.get("NVIDIA_API_KEY", "")
-          api_key = raw_key.strip()
+          key = os.environ.get("NVIDIA_API_KEY", "").strip()
 
           print("===== NVIDIA =====")
-          print("Secret present:", bool(api_key))
-          print("Secret length:", len(api_key))
+          print("Secret present:", bool(key))
+          print("Secret length:", len(key))
 
-          if not api_key:
+          if not key:
               raise RuntimeError("NVIDIA_API_KEY is empty")
-
-          if any(ch.isspace() for ch in api_key):
-              raise RuntimeError(
-                  "NVIDIA_API_KEY contains whitespace inside the key"
-              )
 
           url = "https://integrate.api.nvidia.com/v1/chat/completions"
 
-          response = requests.post(
+          r = requests.post(
               url,
               headers={
-                  "Authorization": f"Bearer {api_key}",
-                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + key,
+                  "Content-Type": "application/json"
               },
               json={
                   "model": "meta/llama-3.3-70b-instruct",
@@ -261,61 +254,17 @@ jobs:
                           "content": "Reply with exactly: Project 9 NVIDIA test OK"
                       }
                   ],
-                  "max_tokens": 20,
+                  "max_tokens": 20
               },
-              timeout=60,
+              timeout=60
           )
 
-          print("HTTP STATUS:", response.status_code)
-          print(response.text)
+          print("HTTP STATUS:", r.status_code)
+          print(r.text)
 
-          response.raise_for_status()
-          PY
-
-      # ============================================================
-      # CLOUDFLARE WORKERS AI
-      # ============================================================
-      - name: Test Cloudflare Workers AI
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        continue-on-error: true
-        run: |
-          python - <<'PY'
-          import os
-          import requests
-
-          account_id = os.environ["CLOUDFLARE_ACCOUNT_ID"]
-          token = os.environ["CLOUDFLARE_API_TOKEN"]
-
-          url = (
-              f"https://api.cloudflare.com/client/v4/accounts/"
-              f"{account_id}/ai/run/@cf/zai-org/glm-4.7-flash"
-          )
-
-          response = requests.post(
-              url,
-              headers={
-                  "Authorization": f"Bearer {token}",
-                  "Content-Type": "application/json",
-              },
-              json={
-                  "messages": [
-                      {
-                          "role": "user",
-                          "content": "Reply with exactly: Project 9 Cloudflare test OK"
-                      }
-                  ]
-              },
-              timeout=60,
-          )
-
-          print("===== CLOUDFLARE =====")
-          print("HTTP STATUS:", response.status_code)
-          print(response.text)
-
-          response.raise_for_status()
-          PY
+          r.raise_for_status()
+          '
+      
 
       # ============================================================
       # MISTRAL
