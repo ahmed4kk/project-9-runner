@@ -220,7 +220,8 @@ jobs:
       # ============================================================
       # NVIDIA
       # ============================================================
-            - name: Test NVIDIA API
+     
+      - name: Test NVIDIA API
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         continue-on-error: true
