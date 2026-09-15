@@ -220,7 +220,7 @@ jobs:
       # ============================================================
       # NVIDIA
       # ============================================================
-      - name: List NVIDIA Models
+      - name: Test NVIDIA DeepSeek V4 Flash
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         continue-on-error: true
@@ -231,17 +231,28 @@ jobs:
 
           key = os.environ.get("NVIDIA_API_KEY", "").strip()
 
-          print("===== NVIDIA MODELS =====")
+          print("===== NVIDIA DEEPSEEK V4 FLASH =====")
           print("Secret present:", bool(key))
           print("Secret length:", len(key))
 
           if not key:
               raise RuntimeError("NVIDIA_API_KEY is empty")
 
-          response = requests.get(
-              "https://integrate.api.nvidia.com/v1/models",
+          response = requests.post(
+              "https://integrate.api.nvidia.com/v1/chat/completions",
               headers={
-                  "Authorization": "Bearer " + key
+                  "Authorization": "Bearer " + key,
+                  "Content-Type": "application/json"
+              },
+              json={
+                  "model": "deepseek-ai/deepseek-v4-flash-0731",
+                  "messages": [
+                      {
+                          "role": "user",
+                          "content": "Reply with exactly: Project 9 NVIDIA DeepSeek test OK"
+                      }
+                  ],
+                  "max_tokens": 30
               },
               timeout=60
           )
@@ -251,7 +262,6 @@ jobs:
 
           response.raise_for_status()
           PY
-      
 
       # ============================================================
       # MISTRAL
