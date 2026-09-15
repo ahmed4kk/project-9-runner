@@ -220,7 +220,7 @@ jobs:
       # ============================================================
       # NVIDIA
       # ============================================================
-      - name: Test NVIDIA API
+            - name: Test NVIDIA API
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         continue-on-error: true
@@ -229,7 +229,20 @@ jobs:
           import os
           import requests
 
-          api_key = os.environ["NVIDIA_API_KEY"]
+          raw_key = os.environ.get("NVIDIA_API_KEY", "")
+          api_key = raw_key.strip()
+
+          print("===== NVIDIA =====")
+          print("Secret present:", bool(api_key))
+          print("Secret length:", len(api_key))
+
+          if not api_key:
+              raise RuntimeError("NVIDIA_API_KEY is empty")
+
+          if any(ch.isspace() for ch in api_key):
+              raise RuntimeError(
+                  "NVIDIA_API_KEY contains whitespace inside the key"
+              )
 
           url = "https://integrate.api.nvidia.com/v1/chat/completions"
 
@@ -252,7 +265,6 @@ jobs:
               timeout=60,
           )
 
-          print("===== NVIDIA =====")
           print("HTTP STATUS:", response.status_code)
           print(response.text)
 
