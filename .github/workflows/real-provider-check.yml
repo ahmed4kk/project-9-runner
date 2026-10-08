@@ -3,13 +3,21 @@ name: Project 9 Real Provider Check
 on:
   workflow_dispatch:
     inputs:
+      script:
+        description: "Which check to run"
+        required: true
+        default: "real_provider_check.py"
+        type: choice
+        options:
+          - real_provider_check.py
+          - e2e_ai_routing_check.py
       core_ref:
         description: "Private Core git ref (commit/tag/branch)"
         required: false
         default: "main"
         type: string
       model_id:
-        description: "Optional: test only this model id (leave empty for all 5)"
+        description: "Only for real_provider_check.py: test only this model id (leave empty for all)"
         required: false
         default: ""
         type: string
@@ -48,7 +56,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run real provider check
+      - name: Run check
         working-directory: project9-core
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
@@ -57,6 +65,7 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SCRIPT: ${{ inputs.script }}
           MODEL_ID: ${{ inputs.model_id }}
         run: |
-          python scripts/real_provider_check.py $MODEL_ID
+          python scripts/$SCRIPT $MODEL_ID
